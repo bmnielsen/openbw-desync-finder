@@ -534,23 +534,25 @@ namespace BWAPI
 
     /// <summary>Retrieves the unit's acceleration amount.</summary>
     ///
-    /// @returns If the value is 1: The unit has fixed or patterned velocity (for example, a
-    /// hopping Zergling). Otherwise, returns the unit's acceleration measured in N/256 pixels
-    /// per frame per frame. So a unit with 64 acceleration would take 4 frames to reach 1
-    /// pixel per frame.
+    /// @returns How fast the unit can accelerate to its top speed.
+    ///
+    /// @todo Figure out the units this quantity is measured in.
     int acceleration() const;
 
-    /// <summary>Retrieves the unit's halting distance.</summary> This is the distance from
-    /// the unit's destination at which point the unit starts decelerating.
+    /// <summary>Retrieves the unit's halting distance.</summary> This determines how fast a unit
+    /// can stop moving.
     ///
-    /// @returns The unit's halting distance, in 1/256ths of a pixel.
+    /// @returns A halting distance value.
+    ///
+    /// @todo Figure out the units this quantity is measured in.
     int haltDistance() const;
 
-    /// <summary>Retrieves a unit's turning rate.</summary> This determines how far a unit can
-    /// rotate in one frame.
-    /// 
-    /// @returns The units are N/256ths of a circle per frame. So a unit with a turnRadius of 64
-    /// can turn a full circle in 4 frames.
+    /// <summary>Retrieves a unit's turning radius.</summary> This determines how fast a unit can
+    /// turn.
+    ///
+    /// @returns A turn radius value.
+    ///
+    /// @todo Figure out the units this quantity is measured in.
     int turnRadius() const;
 
     /// <summary>Determines if a unit can train other units.</summary> For example,

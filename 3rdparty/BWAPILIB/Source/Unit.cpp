@@ -94,20 +94,27 @@ namespace BWAPI
       return std::numeric_limits<int>::max();
 
     /////// Compute distance
+
+    // retrieve left/top/right/bottom values for calculations
+    int left = target.x - 1;
+    int top = target.y - 1;
+    int right = target.x + 1;
+    int bottom = target.y + 1;
+
     // compute x distance
-    int xDist = this->getLeft() - target.x;
+    int xDist = this->getLeft() - right;
     if (xDist < 0)
     {
-      xDist = target.x - (this->getRight() + 1);
+      xDist = left - this->getRight();
       if (xDist < 0)
         xDist = 0;
     }
 
     // compute y distance
-    int yDist = this->getTop() - target.y;
+    int yDist = this->getTop() - bottom;
     if (yDist < 0)
     {
-      yDist = target.y - (this->getBottom() + 1);
+      yDist = top - this->getBottom();
       if (yDist < 0)
         yDist = 0;
     }

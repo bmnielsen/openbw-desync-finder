@@ -20,6 +20,7 @@ public:
         std::cout << "Started replay dump of " << BWAPI::Broodwar->mapPathName() << std::endl;
 
         BWAPI::Broodwar->setLocalSpeed(0);
+        BWAPI::Broodwar->setLatCom(false);
     }
 
     void onFrame() override

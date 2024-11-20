@@ -8,6 +8,8 @@ class UnitData
 public:
     int id;
     int typeIndex;
+    int orderIndex;
+    int orderTimer;
     int positionX;
     int positionY;
     int velocityX;
@@ -20,6 +22,8 @@ public:
 
     UnitData(int id,
              int typeIndex,
+             int orderIndex,
+             int orderTimer,
              int positionX,
              int positionY,
              int velocityX,
@@ -31,6 +35,8 @@ public:
              int cooldown)
             : id(id)
             , typeIndex(typeIndex)
+            , orderIndex(orderIndex)
+            , orderTimer(orderTimer)
             , positionX(positionX)
             , positionY(positionY)
             , velocityX(velocityX)
@@ -46,6 +52,8 @@ public:
     explicit UnitData(BWAPI::Unit unit)
         : id(unit->getID())
         , typeIndex((int)unit->getType())
+        , orderIndex((int)unit->getOrder())
+        , orderTimer(unit->getOrderTimer())
         , positionX(unit->getPosition().x)
         , positionY(unit->getPosition().y)
         , velocityX((int)std::round(unit->getVelocityX() * 1000.0))
@@ -60,8 +68,7 @@ public:
 
     bool operator==(const UnitData &other) const
     {
-        return typeIndex == other.typeIndex
-               && positionX == other.positionX
+        return positionX == other.positionX
                && positionY == other.positionY
                && velocityX == other.velocityX
                && velocityY == other.velocityY
@@ -76,6 +83,8 @@ public:
     {
         file << id << ";"
              << typeIndex << ";"
+             << orderIndex << ";"
+             << orderTimer << ";"
              << positionX << ";"
              << positionY << ";"
              << velocityX << ";"
@@ -89,14 +98,14 @@ public:
 
     static void outputCSVHeader(std::ofstream &file)
     {
-        file << "ID;TypeIdx;PosX;PosY;vX;vY;Angle;Burrowed;HP;Shields;Cooldown";
+        file << "ID;TypeIdx;OrderIdx;OrderTmr;PosX;PosY;vX;vY;Angle;Burrowed;HP;Shields;Cooldown";
     }
 
     static bool parseCSVLineAndEmplace(const std::span<std::string> &line,
                                        std::vector<UnitData> &data,
                                        int lineNumber)
     {
-        if (line.size() < 11)
+        if (line.size() < 13)
         {
             std::cout << "ERROR: Not enough fields"
                       << " at line " << lineNumber << std::endl;
@@ -111,10 +120,12 @@ public:
                 std::stoi(line[4]),
                 std::stoi(line[5]),
                 std::stoi(line[6]),
-                std::stoi(line[7]) != 0,
+                std::stoi(line[7]),
                 std::stoi(line[8]),
-                std::stoi(line[9]),
-                std::stoi(line[10]));
+                std::stoi(line[9]) != 0,
+                std::stoi(line[10]),
+                std::stoi(line[11]),
+                std::stoi(line[12]));
 
         return true;
     }
@@ -123,6 +134,8 @@ public:
     {
         os << "\n" << "id=" << unitData.id
            << "\n" << "type=" << (BWAPI::UnitType)unitData.typeIndex
+           << "\n" << "order=" << (BWAPI::Order)unitData.orderIndex
+           << "\n" << "orderTimer=" << unitData.orderTimer
            << "\n" << "positionX=" << unitData.positionX
            << "\n" << "positionY=" << unitData.positionY
            << "\n" << "velocityX=" << unitData.velocityX

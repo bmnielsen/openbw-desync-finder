@@ -4,7 +4,7 @@
 
 int main()
 {
-    auto replayFile = "/Users/bruce.nielsen/BW/desyncs/22-Iron Bot-GAME_B3681C65.rep";
+    auto replayFile = "/Users/bruce.nielsen/BW/desyncs/McRave-Iron-1.rep";
 
     BW::GameOwner gameOwner;
     BWAPI::BroodwarImpl_handle h(gameOwner.getGame());

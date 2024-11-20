@@ -45,7 +45,6 @@
 #include <BWAPI/UnitType.h>
 #include <BWAPI/UpgradeType.h>
 #include <BWAPI/WeaponType.h>
-#include <set>
 
 /// <summary>The primary namespace for the BWAPI interface.</summary> Everything that is BWAPI is
 /// contained within it.
@@ -72,7 +71,7 @@ namespace BWAPI
   ///
   /// @note This value is purposely high to avoid collisions with revision values.
   /// @since 4.2.0
-  const int CLIENT_VERSION = 10003;
+  const int CLIENT_VERSION = 10002;
 }
 
 #endif

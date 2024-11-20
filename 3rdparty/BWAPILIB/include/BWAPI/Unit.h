@@ -161,7 +161,8 @@ namespace BWAPI
     ///
     /// Example
     /// @code
-    ///   for ( auto u : Broodwar->self()->getUnits() )
+    ///   Unitset myUnits = Broodwar->self()->getUnits();
+    ///   for ( auto u = myUnits.begin(); u != myUnits.end(); ++u )
     ///   {
     ///     if ( u->isFlying() && u->isUnderAttack() ) // implies exists and isCompleted
     ///     {

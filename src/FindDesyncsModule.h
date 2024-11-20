@@ -73,6 +73,7 @@ public:
         std::cout << "Starting replay run" << std::endl;
 
         BWAPI::Broodwar->setLocalSpeed(0);
+        BWAPI::Broodwar->setLatCom(false);
     }
 
     void onFrame() override
@@ -105,7 +106,7 @@ public:
 
                 if (!found)
                 {
-                    std::cout << "Could not find match in data file: " << unitData << std::endl;
+                    std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": Could not find match in data file: " << unitData << std::endl;
                     foundDesync = true;
                 }
             }
@@ -114,7 +115,7 @@ public:
             {
                 for (const auto &unitData : playerData)
                 {
-                    std::cout << "Unmatched unit in data file: " << unitData << std::endl;
+                    std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": Unmatched unit in data file: " << unitData << std::endl;
                 }
                 foundDesync = true;
             }
@@ -122,8 +123,20 @@ public:
 
         if (foundDesync)
         {
-            std::cout << "Desync found at frame " << BWAPI::Broodwar->getFrameCount() << "; stopping processing" << std::endl;
-            exit(0);
+            if (lastDesyncFrame == (BWAPI::Broodwar->getFrameCount() - 1))
+            {
+                consecutiveDesyncFrames++;
+            }
+            else
+            {
+                consecutiveDesyncFrames = 1;
+            }
+            lastDesyncFrame = BWAPI::Broodwar->getFrameCount();
+
+            if (consecutiveDesyncFrames == 10)
+            {
+                exit(0);
+            }
         }
 
         if (BWAPI::Broodwar->getFrameCount() > 0 && BWAPI::Broodwar->getFrameCount() % 1000 == 0)
@@ -138,5 +151,7 @@ public:
     }
 
 private:
+    int consecutiveDesyncFrames = 0;
+    int lastDesyncFrame = -2;
     std::map<int, std::array<std::vector<UnitData>, 2>> frameToPlayerToUnits;
 };

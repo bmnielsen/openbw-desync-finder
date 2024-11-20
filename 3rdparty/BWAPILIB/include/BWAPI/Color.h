@@ -71,7 +71,7 @@ namespace BWAPI
     constexpr Color Purple{ 164 };
 
     /// <summary>The default color for Player 5.</summary>
-    constexpr Color Orange{ 156 };
+    constexpr Color Orange{ 179 };
 
     /// <summary>The default color for Player 6.</summary>
     constexpr Color Brown{ 19 };
