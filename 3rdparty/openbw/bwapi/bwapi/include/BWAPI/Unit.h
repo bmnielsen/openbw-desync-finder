@@ -62,6 +62,7 @@ namespace BWAPI
     ///
     /// @see getReplayID
     virtual int getID() const = 0;
+    virtual int getBWID() const = 0;
 
     /// <summary>Checks if the Unit exists in the view of the BWAPI player.</summary>
     ///

@@ -66,6 +66,26 @@ public:
     {
     }
 
+    int delta(const UnitData &other) const
+    {
+        int result = 0;
+        auto add = [&result](int first, int second)
+        {
+            result += std::abs(first - second);
+        };
+
+        add(positionX, other.positionX);
+        add(positionY, other.positionY);
+        add(velocityX, other.velocityX);
+        add(velocityY, other.velocityY);
+        add(angle, other.angle);
+        add(isBurrowed ? 32 : 0, other.isBurrowed ? 32 : 0);
+        add(hitPoints, other.hitPoints);
+        add(shields, other.shields);
+        add(cooldown, other.cooldown);
+
+        return result;
+    }
     bool operator==(const UnitData &other) const
     {
         return positionX == other.positionX
@@ -77,6 +97,30 @@ public:
                && hitPoints == other.hitPoints
                && shields == other.shields
                && cooldown == other.cooldown;
+    }
+
+    std::string differences(const UnitData &other) const
+    {
+        std::ostringstream builder;
+        std::string sep;
+
+        auto add = [&builder, &sep](const std::string &label, auto first, auto second)
+        {
+            builder << sep << label << ": " << first << "!=" << second;
+            sep = ", ";
+        };
+
+        if (positionX != other.positionX) add("positionX", positionX, other.positionX);
+        if (positionY != other.positionY) add("positionY", positionY, other.positionY);
+        if (velocityX != other.velocityX) add("velocityX", velocityX, other.velocityX);
+        if (velocityY != other.velocityY) add("velocityY", velocityY, other.velocityY);
+        if (angle != other.angle) add("angle", angle, other.angle);
+        if (isBurrowed != other.isBurrowed) add("isBurrowed", isBurrowed, other.isBurrowed);
+        if (hitPoints != other.hitPoints) add("hitPoints", hitPoints, other.hitPoints);
+        if (shields != other.shields) add("shields", shields, other.shields);
+        if (cooldown != other.cooldown) add("cooldown", cooldown, other.cooldown);
+
+        return builder.str();
     }
 
     void outputToCSV(std::ofstream &file) const
@@ -102,7 +146,7 @@ public:
     }
 
     static bool parseCSVLineAndEmplace(const std::span<std::string> &line,
-                                       std::vector<UnitData> &data,
+                                       std::list<UnitData> &unitData,
                                        int lineNumber)
     {
         if (line.size() < 13)
@@ -112,7 +156,7 @@ public:
             return false;
         }
 
-        data.emplace_back(
+        unitData.emplace_back(
                 std::stoi(line[0]),
                 std::stoi(line[1]),
                 std::stoi(line[2]),

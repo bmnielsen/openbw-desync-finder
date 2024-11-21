@@ -51,10 +51,10 @@ public:
                 // Parse the frame and player and reference the data map
                 int frame = std::stoi(line[0]);
                 int player = std::stoi(line[1]);
-                auto &data = frameToPlayerToUnits[frame][player];
+                auto &unitData = frameToPlayerToUnitData[frame][player];
 
                 // Parse the unit data and break if there is an error
-                if (!UnitData::parseCSVLineAndEmplace(std::span<std::string>(line.begin() + 2, line.end()), data, lineNumber))
+                if (!UnitData::parseCSVLineAndEmplace(std::span<std::string>(line.begin() + 2, line.end()), unitData, lineNumber))
                 {
                     break;
                 }
@@ -80,7 +80,7 @@ public:
     {
         bool foundDesync = false;
 
-        auto &frameData = frameToPlayerToUnits[BWAPI::Broodwar->getFrameCount()];
+        auto &frameData = frameToPlayerToUnitData[BWAPI::Broodwar->getFrameCount()];
 
         for (int playerIdx = 0; playerIdx < 2; playerIdx++)
         {
@@ -92,22 +92,54 @@ public:
 
                 auto unitData = UnitData(unit);
 
-                // Find a matching unit in the player data
-                bool found = false;
+                // Find the unit in the BW data that best matches
+                int bestDelta = INT_MAX;
+                auto best = playerData.end();
                 for (auto it = playerData.begin(); it != playerData.end(); it++)
                 {
-                    if (unitData == *it)
+                    int delta = unitData.delta(*it);
+                    if (delta == 0)
                     {
-                        found = true;
+                        // Found a perfect match, can stop now
                         playerData.erase(it);
+                        bestDelta = 0;
                         break;
                     }
-                }
 
-                if (!found)
+                    // Often the IDs will be the same, so if we see one with the same ID and a low delta, use it as the match
+                    if (unitData.id == it->id && delta < 100)
+                    {
+                        bestDelta = delta;
+                        best = it;
+                        break;
+                    }
+
+                    if (delta < bestDelta)
+                    {
+                        bestDelta = delta;
+                        best = it;
+                    }
+                }
+                if (bestDelta == 0) continue; // found an exact match
+
+                foundDesync = true;
+
+                // We didn't find an exact match, but treat units as likely being the same if they are close enough
+                if (bestDelta < 100)
                 {
-                    std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": Could not find match in data file: " << unitData << std::endl;
-                    foundDesync = true;
+                    auto differences = unitData.differences(*best);
+                    if (!differences.empty())
+                    {
+                        std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": Unit values mismatch for "
+                                  << unit->getType() << ":" << unit->getBWID() << " @ " << unit->getTilePosition() << ": "
+                                  << differences << std::endl;
+                    }
+
+                    playerData.erase(best);
+                }
+                else
+                {
+                    std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": OpenBW unit not found in BW data: " << unitData << std::endl;
                 }
             }
 
@@ -115,7 +147,7 @@ public:
             {
                 for (const auto &unitData : playerData)
                 {
-                    std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": Unmatched unit in data file: " << unitData << std::endl;
+                    std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": BW unit not found in OpenBW: " << unitData << std::endl;
                 }
                 foundDesync = true;
             }
@@ -153,5 +185,5 @@ public:
 private:
     int consecutiveDesyncFrames = 0;
     int lastDesyncFrame = -2;
-    std::map<int, std::array<std::vector<UnitData>, 2>> frameToPlayerToUnits;
+    std::map<int, std::array<std::list<UnitData>, 2>> frameToPlayerToUnitData;
 };
