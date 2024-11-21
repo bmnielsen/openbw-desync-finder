@@ -3,14 +3,15 @@
 #include "BWAPI.h"
 #include <fstream>
 #include "UnitData.h"
+#include "BulletData.h"
 
-class FindDesyncsModule : public BWAPI::AIModule
+namespace
 {
-public:
-    void onStart() override
+    template<class T, class U>
+    void parseDataFile(const std::string &filename,
+                       std::map<int, U> &map)
     {
-        auto filename = BWAPI::Broodwar->mapPathName() + ".unitdata.csv";
-        std::cout << "Parsing replay data from " << filename << std::endl;
+        std::cout << "Parsing data from " << filename << std::endl;
 
         std::ifstream file;
         file.open(filename);
@@ -23,7 +24,6 @@ public:
         int lineNumber = 0;
         try
         {
-            // Read and parse each position
             int count = 0;
             while (true)
             {
@@ -50,11 +50,22 @@ public:
 
                 // Parse the frame and player and reference the data map
                 int frame = std::stoi(line[0]);
-                int player = std::stoi(line[1]);
-                auto &unitData = frameToPlayerToUnitData[frame][player];
+                std::list<T> *dataList;
+                auto lineDataStart = line.begin();
+                if constexpr (std::is_same<T, UnitData>())
+                {
+                    int player = std::stoi(line[1]);
+                    dataList = &map[frame][player];
+                    lineDataStart += 2;
+                }
+                else
+                {
+                    dataList = &map[frame];
+                    lineDataStart += 1;
+                }
 
                 // Parse the unit data and break if there is an error
-                if (!UnitData::parseCSVLineAndEmplace(std::span<std::string>(line.begin() + 2, line.end()), unitData, lineNumber))
+                if (!T::parseCSVLineAndEmplace(std::span<std::string>(lineDataStart, line.end()), *dataList, lineNumber))
                 {
                     break;
                 }
@@ -66,9 +77,98 @@ public:
         }
         catch (std::exception &ex)
         {
-            std::cout << "ERROR: Exception caught attempting to parse unit data"
+            std::cout << "ERROR: Exception caught attempting to parse data"
                       << " at line " << lineNumber << ": " << ex.what() << std::endl;
         }
+    }
+
+    template<class T, class U>
+    bool findDesyncs(std::list<T> &bwItems,
+                     const BWAPI::SetContainer<U, std::hash<void*>> &openbwItems)
+    {
+        bool foundDesync = false;
+
+        for (auto bwapiObject : openbwItems)
+        {
+            if (!bwapiObject->exists()) continue;
+
+            auto data = T(bwapiObject);
+            if (data.shouldSkip()) continue;
+
+            // Find the item in the BW data that best matches
+            int bestDelta = INT_MAX;
+            auto best = bwItems.end();
+            for (auto it = bwItems.begin(); it != bwItems.end(); it++)
+            {
+                int delta = data.delta(*it);
+                if (delta == 0)
+                {
+                    // Found a perfect match, can stop now
+                    bwItems.erase(it);
+                    bestDelta = 0;
+                    break;
+                }
+
+                // Often the IDs will be the same, so if we see one with the same ID and a low delta, use it as the match
+                if (data.id == it->id && delta < 100)
+                {
+                    bestDelta = delta;
+                    best = it;
+                    break;
+                }
+
+                if (delta < bestDelta)
+                {
+                    bestDelta = delta;
+                    best = it;
+                }
+            }
+            if (bestDelta == 0) continue; // found an exact match
+
+            foundDesync = true;
+
+            // We didn't find an exact match, but treat items as likely being the same if they are close enough
+            if (bestDelta < 100)
+            {
+                auto differences = data.differences(*best);
+                if (!differences.empty())
+                {
+                    std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": Values mismatch for "
+                              << bwapiObject->getType() << " @ " << BWAPI::WalkPosition(bwapiObject->getPosition()) << ": "
+                              << differences << std::endl;
+                }
+
+                bwItems.erase(best);
+            }
+            else
+            {
+                std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": OpenBW item not found in BW data: " << data << std::endl;
+            }
+        }
+
+        if (!bwItems.empty())
+        {
+            for (const auto &data : bwItems)
+            {
+                std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": BW item not found in OpenBW: " << data << std::endl;
+            }
+            foundDesync = true;
+        }
+
+        return foundDesync;
+    }
+}
+
+class FindDesyncsModule : public BWAPI::AIModule
+{
+public:
+    void onStart() override
+    {
+        auto unitFilename = BWAPI::Broodwar->mapPathName() + ".unitdata.csv";
+        auto bulletFilename = BWAPI::Broodwar->mapPathName() + ".bulletdata.csv";
+
+        parseDataFile<UnitData>(BWAPI::Broodwar->mapPathName() + ".unitdata.csv", frameToPlayerToUnitData);
+        parseDataFile<BulletData>(BWAPI::Broodwar->mapPathName() + ".bulletdata.csv", frameToBulletData);
 
         std::cout << "Starting replay run" << std::endl;
 
@@ -78,80 +178,26 @@ public:
 
     void onFrame() override
     {
+        if (BWAPI::Broodwar->getFrameCount() > 1 && BWAPI::Broodwar->getFrameCount() % 1000 == 1)
+        {
+            std::cout << "...Processed " << (BWAPI::Broodwar->getFrameCount()-1) << " frames of replay" << std::endl;
+        }
+
+        // Skip if we have no BW data for this frame - we may have used a frame skip when exporting the data
+        if (!frameToPlayerToUnitData.contains(BWAPI::Broodwar->getFrameCount()) &&
+            !frameToBulletData.contains(BWAPI::Broodwar->getFrameCount()))
+        {
+            return;
+        }
+
         bool foundDesync = false;
-
-        auto &frameData = frameToPlayerToUnitData[BWAPI::Broodwar->getFrameCount()];
-
         for (int playerIdx = 0; playerIdx < 2; playerIdx++)
         {
-            auto &playerData = frameData[playerIdx];
-
-            for (auto unit : BWAPI::Broodwar->getPlayer(playerIdx)->getUnits())
-            {
-                if (!unit->exists()) continue;
-
-                auto unitData = UnitData(unit);
-
-                // Find the unit in the BW data that best matches
-                int bestDelta = INT_MAX;
-                auto best = playerData.end();
-                for (auto it = playerData.begin(); it != playerData.end(); it++)
-                {
-                    int delta = unitData.delta(*it);
-                    if (delta == 0)
-                    {
-                        // Found a perfect match, can stop now
-                        playerData.erase(it);
-                        bestDelta = 0;
-                        break;
-                    }
-
-                    // Often the IDs will be the same, so if we see one with the same ID and a low delta, use it as the match
-                    if (unitData.id == it->id && delta < 100)
-                    {
-                        bestDelta = delta;
-                        best = it;
-                        break;
-                    }
-
-                    if (delta < bestDelta)
-                    {
-                        bestDelta = delta;
-                        best = it;
-                    }
-                }
-                if (bestDelta == 0) continue; // found an exact match
-
-                foundDesync = true;
-
-                // We didn't find an exact match, but treat units as likely being the same if they are close enough
-                if (bestDelta < 100)
-                {
-                    auto differences = unitData.differences(*best);
-                    if (!differences.empty())
-                    {
-                        std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": Unit values mismatch for "
-                                  << unit->getType() << ":" << unit->getBWID() << " @ " << unit->getTilePosition() << ": "
-                                  << differences << std::endl;
-                    }
-
-                    playerData.erase(best);
-                }
-                else
-                {
-                    std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": OpenBW unit not found in BW data: " << unitData << std::endl;
-                }
-            }
-
-            if (!playerData.empty())
-            {
-                for (const auto &unitData : playerData)
-                {
-                    std::cout << "Frame " << BWAPI::Broodwar->getFrameCount() << ": BW unit not found in OpenBW: " << unitData << std::endl;
-                }
-                foundDesync = true;
-            }
+            foundDesync = findDesyncs(frameToPlayerToUnitData[BWAPI::Broodwar->getFrameCount()][playerIdx],
+                                      BWAPI::Broodwar->getPlayer(playerIdx)->getUnits()) || foundDesync;
         }
+        foundDesync = findDesyncs(frameToBulletData[BWAPI::Broodwar->getFrameCount()],
+                                  BWAPI::Broodwar->getBullets()) || foundDesync;
 
         if (foundDesync)
         {
@@ -170,11 +216,6 @@ public:
                 exit(0);
             }
         }
-
-        if (BWAPI::Broodwar->getFrameCount() > 0 && BWAPI::Broodwar->getFrameCount() % 1000 == 0)
-        {
-            std::cout << "...Processed " << BWAPI::Broodwar->getFrameCount() << " frames of replay" << std::endl;
-        }
     }
 
     void onEnd(bool) override
@@ -186,4 +227,5 @@ private:
     int consecutiveDesyncFrames = 0;
     int lastDesyncFrame = -2;
     std::map<int, std::array<std::list<UnitData>, 2>> frameToPlayerToUnitData;
+    std::map<int, std::list<BulletData>> frameToBulletData;
 };

@@ -66,6 +66,11 @@ public:
     {
     }
 
+    bool shouldSkip() const
+    {
+        return false;
+    }
+
     int delta(const UnitData &other) const
     {
         int result = 0;
@@ -85,18 +90,6 @@ public:
         add(cooldown, other.cooldown);
 
         return result;
-    }
-    bool operator==(const UnitData &other) const
-    {
-        return positionX == other.positionX
-               && positionY == other.positionY
-               && velocityX == other.velocityX
-               && velocityY == other.velocityY
-               && angle == other.angle
-               && isBurrowed == other.isBurrowed
-               && hitPoints == other.hitPoints
-               && shields == other.shields
-               && cooldown == other.cooldown;
     }
 
     std::string differences(const UnitData &other) const
@@ -171,6 +164,11 @@ public:
                 std::stoi(line[11]),
                 std::stoi(line[12]));
 
+        return true;
+    }
+
+    static bool splitByPlayer()
+    {
         return true;
     }
 
