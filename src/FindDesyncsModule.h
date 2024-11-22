@@ -191,9 +191,11 @@ public:
         }
 
         bool foundDesync = false;
+        foundDesync = findDesyncs(frameToPlayerToUnitData[BWAPI::Broodwar->getFrameCount()][0],
+                                  BWAPI::Broodwar->neutral()->getUnits()) || foundDesync;
         for (int playerIdx = 0; playerIdx < 2; playerIdx++)
         {
-            foundDesync = findDesyncs(frameToPlayerToUnitData[BWAPI::Broodwar->getFrameCount()][playerIdx],
+            foundDesync = findDesyncs(frameToPlayerToUnitData[BWAPI::Broodwar->getFrameCount()][playerIdx + 1],
                                       BWAPI::Broodwar->getPlayer(playerIdx)->getUnits()) || foundDesync;
         }
         foundDesync = findDesyncs(frameToBulletData[BWAPI::Broodwar->getFrameCount()],
@@ -226,6 +228,6 @@ public:
 private:
     int consecutiveDesyncFrames = 0;
     int lastDesyncFrame = -2;
-    std::map<int, std::array<std::list<UnitData>, 2>> frameToPlayerToUnitData;
+    std::map<int, std::array<std::list<UnitData>, 3>> frameToPlayerToUnitData;
     std::map<int, std::list<BulletData>> frameToBulletData;
 };

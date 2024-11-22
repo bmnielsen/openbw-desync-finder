@@ -68,7 +68,7 @@ public:
 
     bool shouldSkip() const
     {
-        return false;
+        return ((BWAPI::UnitType)typeIndex).isMineralField();
     }
 
     int delta(const UnitData &other) const

@@ -86,10 +86,13 @@ public:
             bulletFile.flush();
         }
 
+        outputData<UnitData>(unitFile,
+                             (std::ostringstream() << BWAPI::Broodwar->getFrameCount() << ";0;").str(),
+                             BWAPI::Broodwar->neutral()->getUnits());
         for (int playerIdx = 0; playerIdx < 2; playerIdx++)
         {
             outputData<UnitData>(unitFile,
-                                 (std::ostringstream() << BWAPI::Broodwar->getFrameCount() << ";" << playerIdx << ";").str(),
+                                 (std::ostringstream() << BWAPI::Broodwar->getFrameCount() << ";" << (playerIdx + 1) << ";").str(),
                                  BWAPI::Broodwar->getPlayer(playerIdx)->getUnits());
         }
         outputData<BulletData>(bulletFile,
