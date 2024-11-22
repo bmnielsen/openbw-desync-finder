@@ -79,6 +79,7 @@ public:
             result += std::abs(first - second);
         };
 
+        add(orderTimer, other.orderTimer);
         add(positionX, other.positionX);
         add(positionY, other.positionY);
         add(velocityX, other.velocityX);
@@ -103,6 +104,7 @@ public:
             sep = ", ";
         };
 
+        if (orderTimer != other.orderTimer) add("orderTimer", orderTimer, other.orderTimer);
         if (positionX != other.positionX) add("positionX", positionX, other.positionX);
         if (positionY != other.positionY) add("positionY", positionY, other.positionY);
         if (velocityX != other.velocityX) add("velocityX", velocityX, other.velocityX);
