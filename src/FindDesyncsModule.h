@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BWAPI.h"
+#include "BWAPI/GameImpl.h"
 #include <fstream>
 #include "UnitData.h"
 #include "BulletData.h"
@@ -183,6 +184,8 @@ public:
             std::cout << "...Processed " << (BWAPI::Broodwar->getFrameCount()-1) << " frames of replay" << std::endl;
         }
 
+        if (desyncStartedAt != -1) return;
+
         // Skip if we have no BW data for this frame - we may have used a frame skip when exporting the data
         if (!frameToPlayerToUnitData.contains(BWAPI::Broodwar->getFrameCount()) &&
             !frameToBulletData.contains(BWAPI::Broodwar->getFrameCount()))
@@ -215,19 +218,40 @@ public:
 
             if (consecutiveDesyncFrames == 10)
             {
-                exit(0);
+                desyncStartedAt = BWAPI::Broodwar->getFrameCount() - 9;
             }
         }
     }
 
-    void onEnd(bool) override
+    static int getDesyncFrame(const std::string &replayFile)
     {
-        std::cout << "Game ended, no desyncs found" << std::endl;
+        BW::GameOwner gameOwner;
+        BWAPI::BroodwarImpl_handle h(gameOwner.getGame());
+        BWAPI::BroodwarImpl.bwgame.setMapFileName(replayFile);
+
+        h->createSinglePlayerGame([&]()
+                                  {
+                                      h->startGame();
+                                  });
+
+        auto module = FindDesyncsModule();
+        h->setAIModule(&module);
+
+        while (!gameOwner.getGame().gameOver())
+        {
+            h->update();
+            gameOwner.getGame().nextFrame();
+
+            if (module.desyncStartedAt != -1) return module.desyncStartedAt;
+        }
+
+        return INT_MAX;
     }
 
 private:
     int consecutiveDesyncFrames = 0;
     int lastDesyncFrame = -2;
+    int desyncStartedAt = -1;
     std::map<int, std::array<std::list<UnitData>, 3>> frameToPlayerToUnitData;
     std::map<int, std::list<BulletData>> frameToBulletData;
 };

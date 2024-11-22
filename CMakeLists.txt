@@ -20,5 +20,10 @@ include_directories(SYSTEM
         ${CMAKE_SOURCE_DIR}/3rdparty/openbw/openbw
 )
 
-add_executable(openbw_desync_finder src/find_desyncs.cpp)
-target_link_libraries(openbw_desync_finder BWAPI)
+add_executable(dump_data src/dump_data.cpp)
+add_executable(check_for_desync src/check_for_desync.cpp)
+add_executable(find_missing_rng src/find_missing_rng.cpp)
+
+target_link_libraries(dump_data BWAPI)
+target_link_libraries(check_for_desync BWAPI)
+target_link_libraries(find_missing_rng BWAPI)

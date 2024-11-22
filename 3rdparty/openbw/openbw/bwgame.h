@@ -14,6 +14,8 @@
 #include <cmath>
 #include <functional>
 
+#include "rngdebug.h"
+
 namespace bwgame {
 
 static const std::array<unsigned int, 64> tan_table = {
@@ -12867,6 +12869,12 @@ struct state_functions {
 	}
 
 	void update_units() {
+        while (!framesToConsumeRng.empty() && *framesToConsumeRng.begin() == st.current_frame)
+        {
+            lcg_rand(999);
+            framesToConsumeRng.pop_front();
+        }
+
 		--st.order_timer_counter;
 		if (!st.order_timer_counter) {
 			st.order_timer_counter = 150;
@@ -13185,6 +13193,11 @@ struct state_functions {
 	}
 
 	int lcg_rand(int source) {
+//        if (st.current_frame > 15100 && st.current_frame < 15200)
+//        {
+//            std::cout << "Frame " << st.current_frame << ": lcg_rand(" << source << ")" << std::endl;
+//        }
+
 		++st.random_counts[source];
 		++st.total_random_counts;
 		st.lcg_rand_state = st.lcg_rand_state * 22695477 + 1;

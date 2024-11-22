@@ -31,6 +31,9 @@
 #include <cstring>
 #include <condition_variable>
 
+#include "rngdebug.h"
+std::deque<int> framesToConsumeRng;
+
 using bwgame::error;
 
 //#ifdef OPENBW_ENABLE_UI

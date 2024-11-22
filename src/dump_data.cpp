@@ -1,6 +1,5 @@
 #include "BWAPI/GameImpl.h"
 #include "DumpDataModule.h"
-#include "FindDesyncsModule.h"
 
 int main()
 {
@@ -15,7 +14,7 @@ int main()
                                   h->startGame();
                               });
 
-    auto module = FindDesyncsModule();
+    auto module = DumpDataModule();
     h->setAIModule(&module);
 
     while (!gameOwner.getGame().gameOver())
