@@ -31,8 +31,11 @@
 #include <cstring>
 #include <condition_variable>
 
-#include "rngdebug.h"
-std::deque<int> framesToConsumeRng;
+std::deque<std::pair<int, int>> framesToConsumeRng;
+std::deque<std::pair<int, int>> framesToIgnoreRng;
+int rngCountThisFrame;
+int printRngCallsFromFrame = 0;
+int printRngCallsToFrame = 0;
 
 using bwgame::error;
 

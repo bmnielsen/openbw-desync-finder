@@ -12869,12 +12869,6 @@ struct state_functions {
 	}
 
 	void update_units() {
-        while (!framesToConsumeRng.empty() && *framesToConsumeRng.begin() == st.current_frame)
-        {
-            lcg_rand(999);
-            framesToConsumeRng.pop_front();
-        }
-
 		--st.order_timer_counter;
 		if (!st.order_timer_counter) {
 			st.order_timer_counter = 150;
@@ -13084,6 +13078,7 @@ struct state_functions {
 	}
 
 	void process_frame() {
+        rngCountThisFrame = 0;
 		recede_creep();
 
 		if (st.update_tiles_countdown == 0) st.update_tiles_countdown = 100;
@@ -13193,10 +13188,24 @@ struct state_functions {
 	}
 
 	int lcg_rand(int source) {
-//        if (st.current_frame > 15100 && st.current_frame < 15200)
-//        {
-//            std::cout << "Frame " << st.current_frame << ": lcg_rand(" << source << ")" << std::endl;
-//        }
+        while (!framesToConsumeRng.empty() && *framesToConsumeRng.begin() == std::make_pair(st.current_frame, rngCountThisFrame))
+        {
+            std::cout << "Frame " << st.current_frame << ":" << rngCountThisFrame << " - lcg_rand advancing" << std::endl;
+            st.lcg_rand_state = st.lcg_rand_state * 22695477 + 1;
+            framesToConsumeRng.pop_front();
+        }
+        if (!framesToIgnoreRng.empty() && *framesToIgnoreRng.begin() == std::make_pair(st.current_frame, rngCountThisFrame))
+        {
+            std::cout << "Frame " << st.current_frame << ":" << rngCountThisFrame << " - lcg_rand(" << source << ") - no increment" << std::endl;
+            framesToIgnoreRng.pop_front();
+            rngCountThisFrame++;
+            return (st.lcg_rand_state >> 16) & 0x7fff;
+        }
+        if (st.current_frame >= printRngCallsFromFrame && st.current_frame <= printRngCallsToFrame)
+        {
+            std::cout << "Frame " << st.current_frame << ":" << rngCountThisFrame << " - lcg_rand(" << source << ")" << std::endl;
+        }
+        rngCountThisFrame++;
 
 		++st.random_counts[source];
 		++st.total_random_counts;
