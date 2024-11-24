@@ -11,7 +11,7 @@
  */
 int main()
 {
-    auto replayFile = "/Users/bruce.nielsen/BW/desyncs/McRave-Iron-2.rep";
+    auto replayFile = "../files/McRave-Iron-2.rep";
 
     printRngCallsFromFrame = 23453;
     printRngCallsToFrame = 23458;
