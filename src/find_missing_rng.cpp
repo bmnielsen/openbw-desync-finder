@@ -1,14 +1,6 @@
 #include "FindDesyncsModule.h"
 #include "rngdebug.h"
 
-/*
- * Findings for McRave-Iron-2.rep:
- * - First desync can be fixed by adding an extra RNG usage at start of frame 15128, so there is a missing call somewhere in frame 15127 that
- *   does not affect our observed game state
- * - Second desync happens at frame 23456. Observations indicate that OpenBW's RNG sequence is ahead by one on frame 23457. Rolling back at the start
- *   of frame 23455 causes the cooldown of a muta to be wrong. So the inappropriate call is likely after lcg_rand(12) on frame 23455.
- *   It isn't necessarily because OpenBW has an extra RNG call, since the desync could itself cause other RNG calls to happen.
- */
 int main()
 {
     auto replayFile = "../files/McRave-Iron-2.rep";
