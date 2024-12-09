@@ -26,4 +26,6 @@ These are the findings for the replay McRave-Iron-2, which can be found in the `
 - The first observed desync can be fixed completely by adding an extra RNG usage at the start of frame 15128. This indicates that BW is making an additional RNG call that OpenBW is not, causing their random number sequences to get out of sync. Since adding an extra dummy call fixes the problem, BW's extra usage of RNG must be something that doesn't have any other measurable effect on the game.
 - The second observed desync is when two SCVs get different velocities in OpenBW on frame 23456. On the next frame, the RNG sequence is also out of sync, as a lot of RNG-dependent values start deviating. However, in this case neither adding an additional dummy RNG call or removing one can fix the SCV deviation, so this appears to have a different root cause.
 
-The `find_missing_rng.cpp` file contains my work-in-progress attempt to fix the issues by adjusting the RNG sequence.
+On the `rng-exploration` branch there is a `find_missing_rng.cpp` file containing my work-in-progress attempt to fix the issues by adjusting the RNG sequence.
+
+Update: This desync has been fixed by tscmoo and works with the newest version of OpenBW.

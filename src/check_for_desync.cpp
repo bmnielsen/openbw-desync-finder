@@ -2,7 +2,7 @@
 
 int main()
 {
-    auto replayFile = "/Users/bruce.nielsen/BW/desyncs/McRave-Iron-2.rep";
+    auto replayFile = "/Users/bruce.nielsen/BW/desyncs/HaoPan-Stardust.rep";
 
     auto desyncFrame = FindDesyncsModule::getDesyncFrame(replayFile);
     if (desyncFrame == INT_MAX)

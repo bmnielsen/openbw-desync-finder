@@ -82,9 +82,9 @@ public:
         add(orderTimer, other.orderTimer);
         add(positionX, other.positionX);
         add(positionY, other.positionY);
-        add(velocityX, other.velocityX);
-        add(velocityY, other.velocityY);
-        add(angle, other.angle);
+//        add(velocityX, other.velocityX);
+//        add(velocityY, other.velocityY);
+//        add(angle, other.angle);
         add(isBurrowed ? 32 : 0, other.isBurrowed ? 32 : 0);
         add(hitPoints, other.hitPoints);
         add(shields, other.shields);

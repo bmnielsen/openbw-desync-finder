@@ -31,12 +31,6 @@
 #include <cstring>
 #include <condition_variable>
 
-std::deque<std::pair<int, int>> framesToConsumeRng;
-std::deque<std::pair<int, int>> framesToIgnoreRng;
-int rngCountThisFrame;
-int printRngCallsFromFrame = 0;
-int printRngCallsToFrame = 0;
-
 using bwgame::error;
 
 //#ifdef OPENBW_ENABLE_UI

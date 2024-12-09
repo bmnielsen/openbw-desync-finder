@@ -110,14 +110,6 @@ namespace
                     break;
                 }
 
-                // Often the IDs will be the same, so if we see one with the same ID and a low delta, use it as the match
-                if (data.id == it->id && delta < 100)
-                {
-                    bestDelta = delta;
-                    best = it;
-                    break;
-                }
-
                 if (delta < bestDelta)
                 {
                     bestDelta = delta;
