@@ -79,6 +79,7 @@ public:
             result += std::abs(first - second);
         };
 
+        add(typeIndex, other.typeIndex);
         add(orderTimer, other.orderTimer);
         add(positionX, other.positionX);
         add(positionY, other.positionY);
@@ -104,6 +105,7 @@ public:
             sep = ", ";
         };
 
+        if (typeIndex != other.typeIndex) add("typeIndex", typeIndex, other.typeIndex);
         if (orderTimer != other.orderTimer) add("orderTimer", orderTimer, other.orderTimer);
         if (positionX != other.positionX) add("positionX", positionX, other.positionX);
         if (positionY != other.positionY) add("positionY", positionY, other.positionY);
