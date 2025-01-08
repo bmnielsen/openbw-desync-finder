@@ -22,6 +22,8 @@ include_directories(SYSTEM
 
 add_executable(dump_data src/dump_data.cpp)
 add_executable(check_for_desync src/check_for_desync.cpp)
+add_executable(standalone_checker src/standalone_checker.cpp)
 
 target_link_libraries(dump_data BWAPI)
 target_link_libraries(check_for_desync BWAPI)
+target_link_libraries(standalone_checker BWAPI)
