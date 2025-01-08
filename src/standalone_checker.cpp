@@ -4,10 +4,10 @@
 
 int main()
 {
-//    auto replayFile = "/Users/bruce.nielsen/BW/desyncs/HaoPan-BryanWeber.rep";
+//    auto replayFile = "/Users/bruce.nielsen/BW/replay_desync_testing/Ecgberht vs KasoBot Andromeda CTR_AF068E13.rep";
 //
 //    StandaloneDesyncFinderModule::checkForDesync(replayFile);
-
+//
     auto directory = "/Users/bruce.nielsen/BW/replay_desync_testing";
     for (const auto &replayFile : std::filesystem::recursive_directory_iterator(directory))
     {
